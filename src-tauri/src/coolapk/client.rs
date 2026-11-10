@@ -3339,6 +3339,33 @@ impl CoolapkClient {
             .await
     }
 
+    /// replyList 门禁降级：2026-10 起酷安服务端对 replyList 增加了版本/验证码门禁，
+    /// 老版返回"评论接口异常，请尝试升级到新版酷安"，新版返回验证码挑战或 200+空列表。
+    /// 热门回复接口（hotReplyList）不受该门禁影响，作为降级数据源保证评论可见。
+    async fn get_hot_replies_fallback(
+        &self,
+        feed_id: &str,
+        page: u32,
+        first_item: &str,
+        last_item: &str,
+    ) -> Result<Value, String> {
+        log::warn!("api.reply_list_gate_fallback feed_id={} page={}", feed_id, page);
+        let mut hot_query = vec![
+            ("id", feed_id.to_string()),
+            ("page", page.to_string()),
+            ("discussMode", "1".to_string()),
+        ];
+        if !first_item.trim().is_empty() {
+            hot_query.push(("firstItem", first_item.trim().to_string()));
+        }
+        if !last_item.trim().is_empty() {
+            hot_query.push(("lastItem", last_item.trim().to_string()));
+        }
+        Ok(map_hot_reply_likes(
+            self.api_get("/v6/feed/hotReplyList", &hot_query).await?,
+        ))
+    }
+
     pub async fn get_feed_replies_paged(
         &self,
         feed_id: &str,
@@ -3385,7 +3412,34 @@ impl CoolapkClient {
             ("blockStatus", "0".to_string()),
             ("fromFeedAuthor", from_feed_author.to_string()),
         ]);
-        let raw = self.api_get("/v6/feed/replyList", &query).await?;
+        let raw = match self.api_get("/v6/feed/replyList", &query).await {
+            Ok(raw) => {
+                // 软屏蔽形态：HTTP 200 但 data 缺失或为空列表，同样降级到热门回复。
+                let reply_list_empty = raw
+                    .get("data")
+                    .and_then(Value::as_array)
+                    .map(|items| items.is_empty())
+                    .unwrap_or(true);
+                if reply_list_empty {
+                    self.get_hot_replies_fallback(feed_id, page, first_item, last_item)
+                        .await?
+                } else {
+                    raw
+                }
+            }
+            Err(error) => {
+                let gate_hit = error.contains("评论接口异常")
+                    || error.contains("请尝试升级")
+                    || error.contains("升级到新版")
+                    || error.contains("err_request_captcha_v2")
+                    || error.contains("验证码");
+                if !gate_hit {
+                    return Err(error);
+                }
+                self.get_hot_replies_fallback(feed_id, page, first_item, last_item)
+                    .await?
+            }
+        };
 
         let mut cleaned_replies = Vec::new();
         if let Some(data_arr) = raw.get("data").and_then(|v| v.as_array()) {
@@ -9034,6 +9088,30 @@ fn rank_feed_url(rank_type: &str) -> Option<&'static str> {
         "index" => Some("#/feed/statList?statType=7days&sortField=detailnum"),
         _ => None,
     }
+}
+
+/// hotReplyList 的评论对象用顶层 `likenum` 表示点赞数，而 replyList/通用规范化
+/// 读取的是 `userAction.like`；降级数据源需要做一次字段映射。
+fn map_hot_reply_likes(mut response: Value) -> Value {
+    if let Some(items) = response.get_mut("data").and_then(Value::as_array_mut) {
+        for item in items.iter_mut() {
+            let Some(obj) = item.as_object_mut() else {
+                continue;
+            };
+            let like = obj.get("likenum").and_then(Value::as_i64);
+            if let Some(like) = like {
+                obj.entry("userAction".to_string())
+                    .or_insert_with(|| json!({}))
+                    .as_object_mut()
+                    .map(|user_action| {
+                        user_action
+                            .entry("like".to_string())
+                            .or_insert(json!(like));
+                    });
+            }
+        }
+    }
+    response
 }
 
 fn wrap_api_data(response: Value) -> Result<Value, String> {
