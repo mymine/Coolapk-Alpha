@@ -40,7 +40,7 @@ fn test_publish_device_model_is_scoped_and_preserves_identity() {
     assert_eq!(hidden_fields[0], "publish-identity");
     assert!(hidden_fields[4..8].iter().all(String::is_empty));
     assert_eq!(visible_fields[6], "iPhone17,3");
-    assert_eq!(hidden.headers()[USER_AGENT], "CoolMarket/16.2.0-2604201-universal");
+    assert_eq!(hidden.headers()[USER_AGENT], "CoolMarket/16.6.4-2609291-universal");
     assert_eq!(hidden.headers().get_all(USER_AGENT).iter().count(), 1);
     assert_eq!(visible.headers()[USER_AGENT], "native-UA iPhone17,3");
     assert_eq!(hidden.body().unwrap().as_bytes(), visible.body().unwrap().as_bytes());

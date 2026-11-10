@@ -1,0 +1,239 @@
+--- a/docs/coolapk-api.md
++++ b/docs/coolapk-api.md
+@@ -44,12 +44,12 @@
+ | 请求头 | 必要性 | 说明 |
+ | - | - | - |
+-| `User-Agent` | 推荐 | 需带 `+CoolMarket/<版本号>`，如 `Dalvik/2.1.0 (Linux; U; Android 16; ...) +CoolMarket/16.2.0-2604201-universal` |
++| `User-Agent` | 推荐 | 需带 `+CoolMarket/<版本号>`，如 `Dalvik/2.1.0 (Linux; U; Android 16; ...) +CoolMarket/16.6.4-2609291-universal` |
+ | `X-App-Token` | **必要** | 动态生成的 v3 Token，见下节 |
+ | `X-Requested-With` | **必要** | `XMLHttpRequest` 返回 JSON；`com.coolapk.market` 会返回 HTML |
+-| `X-Sdk-Int` | 必要 | Android SDK 版本，如 `36` |
++| `X-Sdk-Int` | 必要 | Android SDK 版本，如 `37` |
+ | `X-Sdk-Locale` | 必要 | `zh-CN` |
+ | `X-App-Id` | 必要 | `com.coolapk.market` |
+-| `X-App-Version` | 必要 | `16.2.0` |
+-| `X-App-Code` | 必要 | `2604201` |
++| `X-App-Version` | 必要 | `16.6.4` |
++| `X-App-Code` | 必要 | `2609291` |
+ | `X-Api-Version` | 必要 | `16` |
+ | `X-App-Device` | 非必要 | 设备码，本项目每次启动随机生成 |
+--- a/src-tauri/src/coolapk/client.rs
++++ b/src-tauri/src/coolapk/client.rs
+@@ -1043,13 +1043,14 @@
+     let mut headers = HeaderMap::new();
+     headers.insert(USER_AGENT, profile.user_agent.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static(super::native_device::COMPATIBILITY_UA)));
+-    headers.insert("X-Sdk-Int", profile.sdk_int.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static("36")));
++    headers.insert("X-Sdk-Int", profile.sdk_int.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static("37")));
+     headers.insert("X-Sdk-Locale", HeaderValue::from_static("zh-CN"));
++    headers.insert("X-Requested-With", HeaderValue::from_static("XMLHttpRequest"));
+     headers.insert("X-App-Mode", HeaderValue::from_static("universal"));
+     headers.insert("X-App-Channel", HeaderValue::from_static("coolapk"));
+     headers.insert("X-App-Id", HeaderValue::from_static("com.coolapk.market"));
+-    headers.insert("X-App-Version", HeaderValue::from_static("16.2.0"));
+-    headers.insert("X-App-Code", HeaderValue::from_static("2604201"));
++    headers.insert("X-App-Version", HeaderValue::from_static("16.6.4"));
++    headers.insert("X-App-Code", HeaderValue::from_static("2609291"));
+     headers.insert("X-Api-Version", HeaderValue::from_static("16"));
+-    headers.insert("X-App-Supported", HeaderValue::from_static("2604201"));
++    headers.insert("X-App-Supported", HeaderValue::from_static("2609291"));
+     headers.insert("X-Dark-Mode", HeaderValue::from_static("0"));
+     let client = http_client_builder().default_headers(headers.clone()).build().map_err(|_| "创建酷安 HTTP 客户端失败".to_string())?;
+@@ -1337,5 +1338,5 @@
+                     "build": self.native_device_profile.build.as_deref().unwrap_or("AQ3A.250226.002"),
+                     "userAgent": self.native_device_profile.user_agent.as_deref().unwrap_or(super::native_device::COMPATIBILITY_UA),
+-                    "sdkInt": self.native_device_profile.sdk_int.as_deref().unwrap_or("36")
++                    "sdkInt": self.native_device_profile.sdk_int.as_deref().unwrap_or("37")
+                 }
+             }
+@@ -1446,13 +1447,13 @@
+             .header("X-App-Token", self.get_token()?)
+             .header("X-Requested-With", "XMLHttpRequest")
+-            .header("X-Sdk-Int", "36")
++            .header("X-Sdk-Int", "37")
+             .header("X-Sdk-Locale", "zh-CN")
+             .header("X-App-Mode", "universal")
+             .header("X-App-Channel", "coolapk")
+             .header("X-App-Id", "com.coolapk.market")
+-            .header("X-App-Version", "16.2.0")
+-            .header("X-App-Code", "2604201")
++            .header("X-App-Version", "16.6.4")
++            .header("X-App-Code", "2609291")
+             .header("X-Api-Version", "16")
+-            .header("X-App-Supported", "2604201")
++            .header("X-App-Supported", "2609291")
+             .header("X-Dark-Mode", "0");
+         self.apply_device_profile(request)
+@@ -3836,5 +3837,5 @@
+         // 缺少 Build 段时，服务端会将该页面判为普通移动浏览器并拒绝访问。
+         let response = request.timeout(std::time::Duration::from_secs(20)).query(query)
+-            .header(USER_AGENT, "Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36 (#Build; nubia; NX789J; AQ3A.250226.002; Android) +CoolMarket/16.6.2-2609151-universal")
++            .header(USER_AGENT, "Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36 (#Build; nubia; NX789J; AQ3A.250226.002; Android) +CoolMarket/16.6.4-2609291-universal")
+             .header("X-Requested-With", "XMLHttpRequest")
+             .header("Referer", "https://m.coolapk.com/mp/userPlugin/myPlugin?autoTheme=1")
+@@ -7064,6 +7065,6 @@
+         let mut headers = HeaderMap::new();
+         headers.insert(USER_AGENT, HeaderValue::from_str(&format!("CoolMarket/{}-{}-universal",
+-            profile.app_version.as_deref().unwrap_or("16.2.0"),
+-            profile.app_code.as_deref().unwrap_or("2604201"))).map_err(|_| "发布 UA 格式无效")?);
++            profile.app_version.as_deref().unwrap_or("16.6.4"),
++            profile.app_code.as_deref().unwrap_or("2609291"))).map_err(|_| "发布 UA 格式无效")?);
+         Ok(request.headers(headers))
+     }
+--- a/src-tauri/src/coolapk/client_tests.rs
++++ b/src-tauri/src/coolapk/client_tests.rs
+@@ -41,5 +41,5 @@
+     assert!(hidden_fields[4..8].iter().all(String::is_empty));
+     assert_eq!(visible_fields[6], "iPhone17,3");
+-    assert_eq!(hidden.headers()[USER_AGENT], "CoolMarket/16.2.0-2604201-universal");
++    assert_eq!(hidden.headers()[USER_AGENT], "CoolMarket/16.6.4-2609291-universal");
+     assert_eq!(hidden.headers().get_all(USER_AGENT).iter().count(), 1);
+     assert_eq!(visible.headers()[USER_AGENT], "native-UA iPhone17,3");
+--- a/src-tauri/src/coolapk/http_session.rs
++++ b/src-tauri/src/coolapk/http_session.rs
+@@ -51,5 +51,5 @@
+             Policy::NoRedirect => builder.redirect(reqwest::redirect::Policy::none()),
+             Policy::Download => builder
+-                .user_agent("Dalvik/2.1.0 (Linux; U; Android 16; 23113RKC6C Build/AQ3A.250226.002) +CoolMarket/16.2.0-2604201-universal")
++                .user_agent("Dalvik/2.1.0 (Linux; U; Android 16; 23113RKC6C Build/AQ3A.250226.002) +CoolMarket/16.6.4-2609291-universal")
+                 .redirect(reqwest::redirect::Policy::limited(10)),
+             Policy::Updater => builder.user_agent("coolapk-desktop-updater")
+--- a/src-tauri/src/coolapk/native_device.rs
++++ b/src-tauri/src/coolapk/native_device.rs
+@@ -2,7 +2,7 @@
+ use super::client::DeviceProfile;
+ 
+-pub const COMPATIBILITY_UA: &str = "Dalvik/2.1.0 (Linux; U; Android 16; 23113RKC6C Build/AQ3A.250226.002) (#Build; Redmi; 23113RKC6C; AQ3A.250226.002; 16) +CoolMarket/16.2.0-2604201-universal";
++pub const COMPATIBILITY_UA: &str = "Dalvik/2.1.0 (Linux; U; Android 16; 23113RKC6C Build/AQ3A.250226.002) (#Build; Redmi; 23113RKC6C; AQ3A.250226.002; 16) +CoolMarket/16.6.4-2609291-universal";
+ #[cfg(any(target_os = "android", target_os = "ios", target_os = "macos", test))]
+-const APP_SUFFIX: &str = " +CoolMarket/16.2.0-2604201-universal";
++const APP_SUFFIX: &str = " +CoolMarket/16.6.4-2609291-universal";
+ 
+ #[cfg(any(target_os = "android", test))]
+--- a/src/pages/settings/DeviceSettingsPage.vue
++++ b/src/pages/settings/DeviceSettingsPage.vue
+@@ -280,5 +280,5 @@
+             type="text"
+             class="text-input small-input"
+-            placeholder="16.2.0"
++            placeholder="16.6.4"
+             maxlength="20"
+           />
+@@ -291,5 +291,5 @@
+             type="text"
+             class="text-input small-input"
+-            placeholder="2604201"
++            placeholder="2609291"
+             maxlength="12"
+           />
+@@ -305,5 +305,5 @@
+             type="text"
+             class="text-input small-input"
+-            placeholder="36"
++            placeholder="37"
+             maxlength="4"
+           />
+@@ -342,11 +342,11 @@
+           <div class="preview-row">
+             <span class="preview-key">X-App-Version</span>
+-            <code class="preview-value">{{ fingerprint.appVersion || '16.2.0' }}</code>
++            <code class="preview-value">{{ fingerprint.appVersion || '16.6.4' }}</code>
+             <span class="preview-key">X-App-Code</span>
+-            <code class="preview-value">{{ fingerprint.appCode || '2604201' }}</code>
++            <code class="preview-value">{{ fingerprint.appCode || '2609291' }}</code>
+           </div>
+           <div class="preview-row">
+             <span class="preview-key">X-Sdk-Int</span>
+-            <code class="preview-value">{{ fingerprint.sdkInt || '36' }}</code>
++            <code class="preview-value">{{ fingerprint.sdkInt || '37' }}</code>
+             <span class="preview-key">X-Sdk-Locale</span>
+             <code class="preview-value">{{ fingerprint.locale || 'zh-CN' }}</code>
+@@ -570,6 +570,6 @@
+   const f = fingerprint.value;
+   const code = Number(f.appCode);
+-  if (!Number.isNaN(code) && code > 0 && code < 2604201) {
+-    return `版本号 ${f.appCode} 低于客户端默认请求版本 2604201，服务端可能要求升级。`;
++  if (!Number.isNaN(code) && code > 0 && code < 2609291) {
++    return `版本号 ${f.appCode} 低于客户端默认请求版本 2609291，服务端可能要求升级。`;
+   }
+   const version = f.appVersion.trim();
+@@ -594,7 +594,7 @@
+     build: 'AQ3A.250226.002',
+     rom: '',
+-    appVersion: '16.2.0',
+-    appCode: '2604201',
+-    sdkInt: '36',
++    appVersion: '16.6.4',
++    appCode: '2609291',
++    sdkInt: '37',
+     locale: 'zh-CN',
+     darkMode: '0',
+--- a/src/pages/settings/__tests__/SettingsPages.test.ts
++++ b/src/pages/settings/__tests__/SettingsPages.test.ts
+@@ -332,11 +332,11 @@
+     await wrapper.get('[aria-label="官方机型表"]').setValue('');
+     expect((wrapper.get('[aria-label="官方机型表"]').element as HTMLSelectElement).value).toBe('');
+-    const appCodeInput = inputs.find((i) => i.attributes('placeholder') === '2604201') || inputs[5];
++    const appCodeInput = inputs.find((i) => i.attributes('placeholder') === '2609291') || inputs[5];
+     await appCodeInput.setValue('2600000');
+     expect(wrapper.find('.version-warning').exists()).toBe(true);
+     await wrapper.get('.reset-button').trigger('click');
+     expect(settings.settings.deviceFingerprint.model).toBe('23113RKC6C');
+-    expect(settings.settings.deviceFingerprint.appCode).toBe('2604201');
+-    expect(settings.settings.deviceFingerprint.sdkInt).toBe('36');
++    expect(settings.settings.deviceFingerprint.appCode).toBe('2609291');
++    expect(settings.settings.deviceFingerprint.sdkInt).toBe('37');
+     expect(settings.settings.deviceFingerprint.deviceId).toBe('saved-id');
+     expect(settings.settings.deviceFingerprint.rom).toBe('');
+--- a/src/stores/__tests__/settings.test.ts
++++ b/src/stores/__tests__/settings.test.ts
+@@ -32,5 +32,5 @@
+     expect(store.settings.deviceFingerprint).toEqual(saved);
+     await store.setAutomaticDeviceProfile({ ...fallbackAccountDevice, source: 'history', userAgent: 'Dalvik/2.1.0 (#Build; Xiaomi; real-model; real-build; 16) +CoolMarket/16.5.1' });
+-    expect(invoke).toHaveBeenLastCalledWith('update_device_profile', { profile: expect.objectContaining({ userAgent: 'Dalvik/2.1.0 (#Build; Xiaomi; real-model; real-build; 16) +CoolMarket/16.2.0-2604201-universal CoolapkDesktopAuto' }) });
++    expect(invoke).toHaveBeenLastCalledWith('update_device_profile', { profile: expect.objectContaining({ userAgent: 'Dalvik/2.1.0 (#Build; Xiaomi; real-model; real-build; 16) +CoolMarket/16.6.4-2609291-universal CoolapkDesktopAuto' }) });
+     store.settings.deviceFingerprint.customFingerprint = true;
+     await store.syncDeviceProfile(store.settings);
+--- a/src/stores/settings.ts
++++ b/src/stores/settings.ts
+@@ -98,7 +98,7 @@
+   build: 'AQ3A.250226.002',
+   rom: '',
+-  appVersion: '16.2.0',
+-  appCode: '2604201',
+-  sdkInt: '36',
++  appVersion: '16.6.4',
++  appCode: '2609291',
++  sdkInt: '37',
+   locale: 'zh-CN',
+   darkMode: '0',
+--- a/src/types/settings.ts
++++ b/src/types/settings.ts
+@@ -112,9 +112,9 @@
+   /** UA 的 ROM 信息，如 "HyperOS_3.0; 3.0.310.0"；留空使用 Android 版本 */
+   rom?: string;
+-  /** X-App-Version，如 "16.2.0" */
++  /** X-App-Version，如 "16.6.4" */
+   appVersion: string;
+-  /** X-App-Code / X-App-Supported，如 "2604201" */
++  /** X-App-Code / X-App-Supported，如 "2609291" */
+   appCode: string;
+-  /** X-Sdk-Int，如 "35" */
++  /** X-Sdk-Int，如 "37" */
+   sdkInt: string;
+   /** X-Sdk-Locale，如 "zh-CN" */
+--- a/src/utils/accountDevice.ts
++++ b/src/utils/accountDevice.ts
+@@ -15,5 +15,5 @@
+ export const fallbackAccountDevice: AccountDeviceProfile = {
+   manufacturer: 'Apple', brand: 'Apple', model: 'iPhone19,7', build: 'compatibility',
+-  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) (#Build; Apple; iPhone19,7; compatibility; 27.0) +CoolMarket/16.2.0-2604201-universal CoolapkDesktopFallback',
++  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) (#Build; Apple; iPhone19,7; compatibility; 27.0) +CoolMarket/16.6.4-2609291-universal CoolapkDesktopFallback',
+   label: 'iPhone 18 Pro Max', source: 'fallback', dateline: 0,
+ };
+@@ -32,5 +32,5 @@
+   if (!model || !build || model.length > 80 || build.length > 120 || /[;\r\n]/.test(model + build)) return null;
+   // 旧版桌面兼容模板不是用户实际手机，避免把客户端自身记录再次识别为手机。
+-  if (model === '23113RKC6C' && build === 'AQ3A.250226.002' && userAgent.includes('+CoolMarket/16.2.0-2604201-universal')) return null;
++  if (model === '23113RKC6C' && build === 'AQ3A.250226.002' && /(?:\+CoolMarket\/(?:16\.2\.0-2604201|16\.6\.4-2609291)-universal)/.test(userAgent)) return null;
+   if (apple && /^(iPhone|iPad|iPod)\d+,\d+$/.test(model)) {
+     return { manufacturer: 'Apple', brand: 'Apple', model, build, userAgent, label: model, source: 'history', dateline };

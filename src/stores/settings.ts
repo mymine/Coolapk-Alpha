@@ -97,9 +97,9 @@ const defaultDeviceFingerprint: DeviceFingerprintSettings = {
   androidVersion: '16',
   build: 'AQ3A.250226.002',
   rom: '',
-  appVersion: '16.2.0',
-  appCode: '2604201',
-  sdkInt: '36',
+  appVersion: '16.6.4',
+  appCode: '2609291',
+  sdkInt: '37',
   locale: 'zh-CN',
   darkMode: '0',
 };

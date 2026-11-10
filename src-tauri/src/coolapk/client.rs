@@ -1042,15 +1042,16 @@ pub(crate) fn base_http_client_builder() -> reqwest::ClientBuilder {
 fn build_api_clients(profile: &DeviceProfile) -> Result<(Client, Client), String> {
     let mut headers = HeaderMap::new();
     headers.insert(USER_AGENT, profile.user_agent.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static(super::native_device::COMPATIBILITY_UA)));
-    headers.insert("X-Sdk-Int", profile.sdk_int.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static("36")));
+    headers.insert("X-Sdk-Int", profile.sdk_int.as_deref().and_then(|value| HeaderValue::from_str(value).ok()).unwrap_or_else(|| HeaderValue::from_static("37")));
     headers.insert("X-Sdk-Locale", HeaderValue::from_static("zh-CN"));
+    headers.insert("X-Requested-With", HeaderValue::from_static("XMLHttpRequest"));
     headers.insert("X-App-Mode", HeaderValue::from_static("universal"));
     headers.insert("X-App-Channel", HeaderValue::from_static("coolapk"));
     headers.insert("X-App-Id", HeaderValue::from_static("com.coolapk.market"));
-    headers.insert("X-App-Version", HeaderValue::from_static("16.2.0"));
-    headers.insert("X-App-Code", HeaderValue::from_static("2604201"));
+    headers.insert("X-App-Version", HeaderValue::from_static("16.6.4"));
+    headers.insert("X-App-Code", HeaderValue::from_static("2609291"));
     headers.insert("X-Api-Version", HeaderValue::from_static("16"));
-    headers.insert("X-App-Supported", HeaderValue::from_static("2604201"));
+    headers.insert("X-App-Supported", HeaderValue::from_static("2609291"));
     headers.insert("X-Dark-Mode", HeaderValue::from_static("0"));
     let client = http_client_builder().default_headers(headers.clone()).build().map_err(|_| "创建酷安 HTTP 客户端失败".to_string())?;
     let redirect_client = http_client_builder().default_headers(headers).redirect(reqwest::redirect::Policy::none()).build().map_err(|_| "创建酷安重定向客户端失败".to_string())?;
@@ -1336,7 +1337,7 @@ impl CoolapkClient {
                     "model": self.native_device_profile.model.as_deref().unwrap_or("23113RKC6C"),
                     "build": self.native_device_profile.build.as_deref().unwrap_or("AQ3A.250226.002"),
                     "userAgent": self.native_device_profile.user_agent.as_deref().unwrap_or(super::native_device::COMPATIBILITY_UA),
-                    "sdkInt": self.native_device_profile.sdk_int.as_deref().unwrap_or("36")
+                    "sdkInt": self.native_device_profile.sdk_int.as_deref().unwrap_or("37")
                 }
             }
         }))
@@ -1445,15 +1446,15 @@ impl CoolapkClient {
         let request = request
             .header("X-App-Token", self.get_token()?)
             .header("X-Requested-With", "XMLHttpRequest")
-            .header("X-Sdk-Int", "36")
+            .header("X-Sdk-Int", "37")
             .header("X-Sdk-Locale", "zh-CN")
             .header("X-App-Mode", "universal")
             .header("X-App-Channel", "coolapk")
             .header("X-App-Id", "com.coolapk.market")
-            .header("X-App-Version", "16.2.0")
-            .header("X-App-Code", "2604201")
+            .header("X-App-Version", "16.6.4")
+            .header("X-App-Code", "2609291")
             .header("X-Api-Version", "16")
-            .header("X-App-Supported", "2604201")
+            .header("X-App-Supported", "2609291")
             .header("X-Dark-Mode", "0");
         self.apply_device_profile(request)
     }
@@ -3835,7 +3836,7 @@ impl CoolapkClient {
         // APK UserAgentHandler 经 C2304 添加 (#Build; ...) 后追加 CoolMarket 版本。
         // 缺少 Build 段时，服务端会将该页面判为普通移动浏览器并拒绝访问。
         let response = request.timeout(std::time::Duration::from_secs(20)).query(query)
-            .header(USER_AGENT, "Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36 (#Build; nubia; NX789J; AQ3A.250226.002; Android) +CoolMarket/16.6.2-2609151-universal")
+            .header(USER_AGENT, "Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36 (#Build; nubia; NX789J; AQ3A.250226.002; Android) +CoolMarket/16.6.4-2609291-universal")
             .header("X-Requested-With", "XMLHttpRequest")
             .header("Referer", "https://m.coolapk.com/mp/userPlugin/myPlugin?autoTheme=1")
             .header("Origin", "https://m.coolapk.com")
@@ -7063,8 +7064,8 @@ impl CoolapkClient {
         // 覆盖默认 UA 和自定义 UA，避免从 #Build 或 Dalvik 片段重新识别机型。
         let mut headers = HeaderMap::new();
         headers.insert(USER_AGENT, HeaderValue::from_str(&format!("CoolMarket/{}-{}-universal",
-            profile.app_version.as_deref().unwrap_or("16.2.0"),
-            profile.app_code.as_deref().unwrap_or("2604201"))).map_err(|_| "发布 UA 格式无效")?);
+            profile.app_version.as_deref().unwrap_or("16.6.4"),
+            profile.app_code.as_deref().unwrap_or("2609291"))).map_err(|_| "发布 UA 格式无效")?);
         Ok(request.headers(headers))
     }
 

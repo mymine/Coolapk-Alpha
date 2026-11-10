@@ -279,7 +279,7 @@
             v-model="settingsStore.settings.deviceFingerprint.appVersion"
             type="text"
             class="text-input small-input"
-            placeholder="16.2.0"
+            placeholder="16.6.4"
             maxlength="20"
           />
           <div class="row-info">
@@ -290,7 +290,7 @@
             v-model="settingsStore.settings.deviceFingerprint.appCode"
             type="text"
             class="text-input small-input"
-            placeholder="2604201"
+            placeholder="2609291"
             maxlength="12"
           />
         </div>
@@ -304,7 +304,7 @@
             v-model="settingsStore.settings.deviceFingerprint.sdkInt"
             type="text"
             class="text-input small-input"
-            placeholder="36"
+            placeholder="37"
             maxlength="4"
           />
           <div class="row-info">
@@ -341,13 +341,13 @@
           </div>
           <div class="preview-row">
             <span class="preview-key">X-App-Version</span>
-            <code class="preview-value">{{ fingerprint.appVersion || '16.2.0' }}</code>
+            <code class="preview-value">{{ fingerprint.appVersion || '16.6.4' }}</code>
             <span class="preview-key">X-App-Code</span>
-            <code class="preview-value">{{ fingerprint.appCode || '2604201' }}</code>
+            <code class="preview-value">{{ fingerprint.appCode || '2609291' }}</code>
           </div>
           <div class="preview-row">
             <span class="preview-key">X-Sdk-Int</span>
-            <code class="preview-value">{{ fingerprint.sdkInt || '36' }}</code>
+            <code class="preview-value">{{ fingerprint.sdkInt || '37' }}</code>
             <span class="preview-key">X-Sdk-Locale</span>
             <code class="preview-value">{{ fingerprint.locale || 'zh-CN' }}</code>
             <span class="preview-key">X-Dark-Mode</span>
@@ -569,8 +569,8 @@ const presetModel = computed({
 const versionWarning = computed(() => {
   const f = fingerprint.value;
   const code = Number(f.appCode);
-  if (!Number.isNaN(code) && code > 0 && code < 2604201) {
-    return `版本号 ${f.appCode} 低于客户端默认请求版本 2604201，服务端可能要求升级。`;
+  if (!Number.isNaN(code) && code > 0 && code < 2609291) {
+    return `版本号 ${f.appCode} 低于客户端默认请求版本 2609291，服务端可能要求升级。`;
   }
   const version = f.appVersion.trim();
   if (version) {
@@ -593,9 +593,9 @@ function resetToDefault() {
     androidVersion: '16',
     build: 'AQ3A.250226.002',
     rom: '',
-    appVersion: '16.2.0',
-    appCode: '2604201',
-    sdkInt: '36',
+    appVersion: '16.6.4',
+    appCode: '2609291',
+    sdkInt: '37',
     locale: 'zh-CN',
     darkMode: '0',
   };
